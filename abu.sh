@@ -25,20 +25,20 @@ function logit {
 }
 
 function main {
-  declare conf_fname
+  declare conf_fname=
   declare -r attic_archive_timestamp="$(date +%s)"
   # we declare all our configuration variable from the config file to avoid
   # unbound variable errors (due to set -u) if the config options are missing
   # from the config file.
-  declare attic_repo
-  declare attic_key
-  declare -a include_paths
-  declare -a exclude_paths
-  declare -i keep_within
-  declare -i keep_hourly
-  declare -i keep_daily
-  declare -i keep_weekly
-  declare -i keep_yearly
+  declare attic_repo=
+  declare attic_key=
+  declare -a include_paths=()
+  declare -a exclude_paths=()
+  declare -i keep_within=
+  declare -i keep_hourly=
+  declare -i keep_daily=
+  declare -i keep_weekly=
+  declare -i keep_yearly=
 
   logit "Started"
 
