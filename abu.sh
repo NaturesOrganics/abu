@@ -20,6 +20,8 @@
 set -e
 set -u
 
+export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
 function logit {
   logger -t 'abu' "$1"
 }
