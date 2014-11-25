@@ -2,4 +2,6 @@ all: install
 
 install:
 	install -m 0755 abu.sh /usr/local/sbin/abu
+
+conf:
 	install -m 0644 abu.conf /etc/abu.conf
