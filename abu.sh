@@ -75,7 +75,7 @@ function main {
 
   # has "keep_within" been set?
   declare keep_within_arg
-  if [[ -n "${keep_within}" ]] ; then
+  if [[ "${keep_within}" -gt 0 ]] ; then
     keep_within_arg="--keep-within=${keep_within}"
   fi
 
