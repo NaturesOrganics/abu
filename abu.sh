@@ -90,7 +90,7 @@ function main {
 
   # create a temp file with all our excludes
   declare -r tfile_excludes="$(mktemp)"
-  printf "%s\n" "${exclude_paths[@]}" > "$tfile_excludes"
+  [[ ${#exclude_paths[@]} -gt 0 ]] && printf "%s\n" "${exclude_paths[@]}" > "$tfile_excludes"
 
   logit "Starting backup to ${attic_repo}::${attic_archive_timestamp}"
   attic create \
