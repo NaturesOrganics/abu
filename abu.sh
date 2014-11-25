@@ -95,7 +95,7 @@ function main {
   logit "Starting backup to ${attic_repo}::${attic_archive_timestamp}"
   attic create \
     "${attic_repo}::${attic_archive_timestamp}" \
-    ${include_paths}                            \
+    ${include_paths[@]}                         \
     --exclude-from "${tfile_excludes}"          \
     --exclude-caches
 
