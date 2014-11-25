@@ -74,7 +74,7 @@ function main {
   [[ -z "${keep_yearly}" ]] && { echo "Missing config: keep_yearly"; exit 2; }
 
   # has "keep_within" been set?
-  declare keep_within_arg
+  declare keep_within_arg=
   if [[ "${keep_within}" -gt 0 ]] ; then
     keep_within_arg="--keep-within=${keep_within}"
   fi
