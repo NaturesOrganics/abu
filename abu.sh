@@ -26,9 +26,17 @@ function logit {
   logger -t 'abu' "$1"
 }
 
+function usage {
+  printf "Usage: %s [options]\n" "$0"
+  printf "Options:\n"
+  printf "   %-25s %-50s\n" '-d INT'  'Sleep a random delay up to INT before starting'
+  printf "   %-25s %-50s\n" '-h'      'Display this help and exit'
+}
+
 function main {
   declare conf_fname=
   declare -r attic_archive_timestamp="$(date +%s)"
+  declare -i delay_max=
   # we declare all our configuration variable from the config file to avoid
   # unbound variable errors (due to set -u) if the config options are missing
   # from the config file.
@@ -43,6 +51,28 @@ function main {
   declare -i keep_yearly=
 
   logit "Started"
+
+  # fetch cmdline options
+  while getopts ":hd:" opt; do
+    case $opt in
+      d)
+        delay_max="$OPTARG"
+        ;;
+      h)
+        usage
+        exit 0
+        ;;
+      \?)
+        echo "ERROR: Invalid option: -$OPTARG" >&2
+        usage
+        exit 1
+        ;;
+      :)
+        echo "ERROR: Option -$OPTARG requires an argument." >&2
+        exit 1
+        ;;
+    esac
+  done
 
   # locate and load our config file
   for potential_conf_fname in "$HOME"/.abu.conf /etc/abu.conf ; do
@@ -93,6 +123,13 @@ function main {
   # create a temp file with all our excludes
   declare -r tfile_excludes="$(mktemp)"
   [[ ${#exclude_paths[@]} -gt 0 ]] && printf "%s\n" "${exclude_paths[@]}" > "$tfile_excludes"
+
+  # does the user want a random delay?
+  if [[ "${delay_max}" -gt 0 ]] ; then
+    declare -i random_delay_time=$((RANDOM%$delay_max))
+    logit "Random delay enabled; Sleeping for $random_delay_time seconds" 
+    sleep ${random_delay_time}s
+  fi
 
   logit "Starting backup to ${attic_repo}::${attic_archive_timestamp}"
   attic create \
