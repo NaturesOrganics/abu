@@ -133,7 +133,7 @@ function main {
     'init')
       logit "Initializing repository ${attic_repo}"
       if [[ -n "$attic_key" ]] ; then
-        attic init -e "$attic_key" "${attic_repo}"
+        attic init -e passphrase "${attic_repo}"
       else
         attic init "${attic_repo}"
       fi
