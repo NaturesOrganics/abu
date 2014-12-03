@@ -29,6 +29,8 @@ function logit {
 function usage {
   printf "Usage: %s [options]\n" "$0"
   printf "Options:\n"
+  printf "   %-25s %-50s\n" '-i'      'Initialize the repository'
+  printf "   %-25s %-50s\n" '-l'      'List archives in the repository'
   printf "   %-25s %-50s\n" '-d INT'  'Sleep a random delay up to INT before starting'
   printf "   %-25s %-50s\n" '-h'      'Display this help and exit'
 }
@@ -49,12 +51,19 @@ function main {
   declare -i keep_daily=
   declare -i keep_weekly=
   declare -i keep_yearly=
+  declare action='bup'
 
   logit "Started"
 
   # fetch cmdline options
-  while getopts ":hd:" opt; do
+  while getopts ":hd:il" opt; do
     case $opt in
+      i)
+        action='init'
+        ;;
+      l)
+        action='list'
+        ;;
       d)
         delay_max="$OPTARG"
         ;;
@@ -95,7 +104,7 @@ function main {
   fi
 
   # make all our config readonly
-  readonly attic_repo include_paths exclude_paths
+  readonly attic_repo include_paths exclude_paths action
   readonly keep_within keep_hourly keep_daily keep_weekly keep_yearly
 
   # do we have all the config?
@@ -119,6 +128,22 @@ function main {
     fi
     export ATTIC_PASSPHRASE="$attic_key"
   fi
+
+  case "$action" in
+    'init')
+      logit "Initializing repository ${attic_repo}"
+      if [[ -n "$attic_key" ]] ; then
+        attic init -e "$attic_key" "${attic_repo}"
+      else
+        attic init "${attic_repo}"
+      fi
+      exit 0
+      ;;
+    'list')
+      attic list "${attic_repo}"
+      exit 0
+      ;;
+  esac
 
   # create a temp file with all our excludes
   declare -r tfile_excludes="$(mktemp)"
