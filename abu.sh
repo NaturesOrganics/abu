@@ -29,10 +29,10 @@ function logit {
 function usage {
   printf "Usage: %s [options]\n" "$0"
   printf "Options:\n"
-  printf "   %-25s %-50s\n" '-i'      'Initialize the repository'
-  printf "   %-25s %-50s\n" '-l'      'List archives in the repository'
-  printf "   %-25s %-50s\n" '-d INT'  'Sleep a random delay up to INT before starting'
-  printf "   %-25s %-50s\n" '-h'      'Display this help and exit'
+  printf "   %-10s %-50s\n" '-i'      'Initialize the repository'
+  printf "   %-10s %-50s\n" '-l'      'List archives in the repository'
+  printf "   %-10s %-50s\n" '-d INT'  'Sleep a random delay up to INT before starting'
+  printf "   %-10s %-50s\n" '-h'      'Display this help and exit'
 }
 
 function main {
