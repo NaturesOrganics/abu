@@ -37,6 +37,7 @@ function usage {
 
 function main {
   declare conf_fname=
+  declare renice=
   declare -r attic_archive_timestamp="$(date +%s)"
   declare -i delay_max=
   # we declare all our configuration variable from the config file to avoid
@@ -127,6 +128,13 @@ function main {
       logit "WARNING: Passphrase is only ${#attic_key} characters long. Consider making it longer"
     fi
     export ATTIC_PASSPHRASE="$attic_key"
+  fi
+
+  # adjust our nice levels so we don't impact normal system operations too much
+  if [[ $renice =~ [Yy][Ee][Ss] ]] ; then
+    logit "Adjusting backup priority to nice 19, ionice 2/7"
+    renice -n 19 -p $$ > /dev/null
+    ionice -c 2 -n 7 -p $$ > /dev/null
   fi
 
   case "$action" in
