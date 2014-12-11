@@ -20,10 +20,26 @@
 set -e
 set -u
 
+declare -r MYNAME='abu'
+declare -r LOCK_DIR='/tmp'
+declare -r LOCK_FD=200
+
 export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 function logit {
   logger -t 'abu' "$1"
+}
+
+function take_lock() {
+  local fd=${1:-$LOCK_FD}
+  local lock_file="$LOCK_DIR/${MYNAME}.lock"
+
+  # create lock file FD
+  eval "exec $fd>$lock_file"
+  # cleanup the lock file when we exit
+  trap "rm -f '$lock_file'" INT TERM EXIT
+  # now lock it
+  flock -n $fd && return 0 || return 1
 }
 
 function usage {
@@ -55,6 +71,11 @@ function main {
   declare action='bup'
 
   logit "Started"
+
+  if ! take_lock ; then
+    logit "Unable to obtain program lock! Aborting"
+    exit 1
+  fi
 
   # fetch cmdline options
   while getopts ":hd:il" opt; do
