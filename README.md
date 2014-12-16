@@ -46,7 +46,7 @@ whichever file it finds first.
 
 ### Scheduling
 
-Once you've got abi installed, configured and your repository initialize, you
+Once you've got abu installed, configured and your repository initialize, you
 are probably ready to schedule regular backups. To backup every hour, on the
 hour, add something like this to your crontab:
 
