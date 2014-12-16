@@ -24,10 +24,17 @@ declare -r MYNAME='abu'
 declare -r LOCK_DIR='/tmp'
 declare -r LOCK_FD=200
 
+declare BE_VERBOSE=
+
 export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 function logit {
+  [ -n "$BE_VERBOSE" ] && printf "%s\n" "$1"
   logger -t 'abu' "$1"
+}
+function errit {
+  printf "ERROR: %s\n" "$1" 1>&2
+  logger -t 'abu' "ERROR: $1"
 }
 
 function take_lock() {
@@ -48,6 +55,7 @@ function usage {
   printf "   %-10s %-50s\n" '-i'      'Initialize the repository'
   printf "   %-10s %-50s\n" '-l'      'List archives in the repository'
   printf "   %-10s %-50s\n" '-d INT'  'Sleep a random delay up to INT before starting'
+  printf "   %-10s %-50s\n" '-v'      'Be verbose'
   printf "   %-10s %-50s\n" '-h'      'Display this help and exit'
 }
 
@@ -73,12 +81,12 @@ function main {
   logit "Started"
 
   if ! take_lock ; then
-    logit "Unable to obtain program lock! Aborting"
+    errit "Unable to obtain program lock! Aborting"
     exit 1
   fi
 
   # fetch cmdline options
-  while getopts ":hd:il" opt; do
+  while getopts ":vhd:il" opt; do
     case $opt in
       i)
         action='init'
@@ -89,17 +97,20 @@ function main {
       d)
         delay_max="$OPTARG"
         ;;
+      v)
+        BE_VERBOSE=1
+        ;;
       h)
         usage
         exit 0
         ;;
       \?)
-        echo "ERROR: Invalid option: -$OPTARG" >&2
+        errit "ERROR: Invalid option: -$OPTARG" >&2
         usage
         exit 1
         ;;
       :)
-        echo "ERROR: Option -$OPTARG requires an argument." >&2
+        errit "ERROR: Option -$OPTARG requires an argument." >&2
         exit 1
         ;;
     esac
@@ -120,8 +131,7 @@ function main {
     logit "Loading config file $conf_fname"
     source "$conf_fname"
   else
-    logit "Unable to load a valid config file!"
-    echo "Unable to load a valid config file!"
+    errit "Unable to load a valid config file!"
     exit 1
   fi
 
