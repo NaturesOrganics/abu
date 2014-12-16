@@ -1,6 +1,16 @@
 # abu
 
-Attic Backup wrapper script for nightly backups
+Attic backup wrapper script for regular backups. Attic is a deduplicating
+backup program, supporting compression and encryption.
+
+## Motivation
+
+Attic is an awesome backup utility; however it is only the backup tool. This
+script wraps attic into a simple to use function that can be run regularly to
+maintain an ongoing backup repository, including pruning of old backups.
+
+Abu is a double-acronym for "**A**ttic **B**ack**U**p" and "**A**nother
+**B**ackup **U**tility"
 
 ## Installation
 
