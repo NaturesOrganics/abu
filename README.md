@@ -39,6 +39,28 @@ your needs.
 Once you have setup your configuration file, you need to run `abu -i` to
 initialize the repository. This is a one-time task.
 
+### Configuration Paths
+
+Abu will look for a config file in `$HOME/.abu.conf` and `/etc/abu.conf`, using
+whichever file it finds first.
+
+### Scheduling
+
+Once you've got abi installed, configured and your repository initialize, you
+are probably ready to schedule regular backups. To backup every hour, on the
+hour, add something like this to your crontab:
+
+    0 * * * * /usr/local/sbin/abu
+
+To avoid all your hosts hitting the same backup target at the same time (if
+your infrastructure is setup that way), use the `-d` option to set the maximum
+time to delay the backup. No delay will be introduced unless you pass the `-d`
+option to abu.
+
+Introduce a random delay up to 300 seconds (5 minutes):
+
+    0 * * * * /usr/local/sbin/abu -d 300
+
 ## Destination Targets
 
 You can backup directly to a locally mounted file-system (eg, local disk, USB,
