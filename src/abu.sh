@@ -62,7 +62,6 @@ function usage {
 function main {
   declare conf_fname=
   declare renice=
-  declare -r attic_archive_timestamp="$(date +%s)"
   declare -i delay_max=
   # we declare all our configuration variable from the config file to avoid
   # unbound variable errors (due to set -u) if the config options are missing
@@ -195,6 +194,9 @@ function main {
     sleep ${random_delay_time}s
   fi
 
+  # we declare this var after random delay to reduce the possibility of duplicates
+  # for example: if time changes due to DST.
+  declare -r attic_archive_timestamp="$(date +%s)"
   logit "Starting backup to ${attic_repo}::${attic_archive_timestamp}"
   attic create \
     "${attic_repo}::${attic_archive_timestamp}" \
