@@ -55,6 +55,7 @@ function usage {
   printf "   %-10s %-50s\n" '-i'      'Initialize the repository'
   printf "   %-10s %-50s\n" '-l'      'List archives in the repository'
   printf "   %-10s %-50s\n" '-d INT'  'Sleep a random delay up to INT before starting'
+  printf "   %-10s %-50s\n" '-t'      'Test list the backup after writing complete'
   printf "   %-10s %-50s\n" '-v'      'Be verbose'
   printf "   %-10s %-50s\n" '-h'      'Display this help and exit'
 }
@@ -63,6 +64,7 @@ function main {
   declare conf_fname=
   declare renice=
   declare -i delay_max=
+  declare do_test_list=
   # we declare all our configuration variable from the config file to avoid
   # unbound variable errors (due to set -u) if the config options are missing
   # from the config file.
@@ -80,7 +82,7 @@ function main {
   logit "Started"
 
   # fetch cmdline options
-  while getopts ":vhd:il" opt; do
+  while getopts ":vhtd:il" opt; do
     case $opt in
       i)
         action='init'
@@ -90,6 +92,9 @@ function main {
         ;;
       d)
         delay_max="$OPTARG"
+        ;;
+      t)
+        do_test_list='yes'
         ;;
       v)
         BE_VERBOSE=1
@@ -211,6 +216,15 @@ function main {
     --keep-daily=${keep_daily}    \
     --keep-weekly=${keep_weekly}  \
     --keep-monthly=${keep_monthly}
+
+  # perhaps do a test list? this is to help combat https://github.com/jborg/attic/issues/139
+  if [[ -n "$do_test_list" ]] ; then
+    logit "Performing a test listing of archive"
+    if ! attic list "${attic_repo}::${attic_archive_timestamp}" &> /dev/null ; then
+      # something failed
+      logit "WARNING: listing the archive we just created failed. Something is likely wrong"
+    fi
+  fi
 
   rm -f "$tfile_excludes"
   logit "Backup process complete"
