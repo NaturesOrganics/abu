@@ -79,11 +79,6 @@ function main {
 
   logit "Started"
 
-  if ! take_lock ; then
-    errit "Unable to obtain program lock! Aborting"
-    exit 1
-  fi
-
   # fetch cmdline options
   while getopts ":vhd:il" opt; do
     case $opt in
@@ -160,13 +155,6 @@ function main {
     export ATTIC_PASSPHRASE="$attic_key"
   fi
 
-  # adjust our nice levels so we don't impact normal system operations too much
-  if [[ $renice =~ [Yy][Ee][Ss] ]] ; then
-    logit "Adjusting backup priority to nice 19, ionice 2/7"
-    renice -n 19 -p $$ > /dev/null
-    ionice -c 2 -n 7 -p $$ > /dev/null
-  fi
-
   case "$action" in
     'init')
       logit "Initializing repository ${attic_repo}"
@@ -182,6 +170,18 @@ function main {
       exit 0
       ;;
   esac
+
+  if ! take_lock ; then
+    errit "Unable to obtain program lock! Aborting"
+    exit 1
+  fi
+
+  # adjust our nice levels so we don't impact normal system operations too much
+  if [[ $renice =~ [Yy][Ee][Ss] ]] ; then
+    logit "Adjusting backup priority to nice 19, ionice 2/7"
+    renice -n 19 -p $$ > /dev/null
+    ionice -c 2 -n 7 -p $$ > /dev/null
+  fi
 
   # create a temp file with all our excludes
   declare -r tfile_excludes="$(mktemp)"
