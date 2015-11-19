@@ -78,17 +78,21 @@ function main {
   declare -i keep_weekly=
   declare -i keep_yearly=
   declare action='bup'
+  declare archive_name=
 
   logit "Started"
 
   # fetch cmdline options
-  while getopts ":vhtd:il" opt; do
+  while getopts ":vhtd:iln:" opt; do
     case $opt in
       i)
         action='init'
         ;;
       l)
         action='list'
+        ;;
+      n)
+        archive_name="$OPTARG"
         ;;
       d)
         delay_max="$OPTARG"
@@ -171,7 +175,9 @@ function main {
       exit 0
       ;;
     'list')
-      attic list "${attic_repo}"
+      # prepend '::' to the archive name if it's been set
+      [[ -n "$archive_name" ]] && archive_name="::$archive_name"
+      attic list "$attic_repo""$archive_name"
       exit 0
       ;;
   esac
@@ -201,12 +207,12 @@ function main {
 
   # we declare this var after random delay to reduce the possibility of duplicates
   # for example: if time changes due to DST.
-  declare -r attic_archive_timestamp="$(date +%s)"
-  logit "Starting backup to ${attic_repo}::${attic_archive_timestamp}"
+  archive_name="$(date +%s)"
+  logit "Starting backup to ${attic_repo}::${archive_name}"
   attic create \
-    "${attic_repo}::${attic_archive_timestamp}" \
-    --exclude-from "${tfile_excludes}"          \
-    --exclude-caches                            \
+    "${attic_repo}::${archive_name}"    \
+    --exclude-from "${tfile_excludes}"  \
+    --exclude-caches                    \
     ${include_paths[@]}
 
   logit "Cleaning up old archives"
@@ -220,7 +226,7 @@ function main {
   # perhaps do a test list? this is to help combat https://github.com/jborg/attic/issues/139
   if [[ -n "$do_test_list" ]] ; then
     logit "Performing a test listing of archive"
-    if ! attic list "${attic_repo}::${attic_archive_timestamp}" &> /dev/null ; then
+    if ! attic list "${attic_repo}::${archive_name}" &> /dev/null ; then
       # something failed
       logit "WARNING: listing the archive we just created failed. Something is likely wrong"
     fi
