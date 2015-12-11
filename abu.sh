@@ -209,7 +209,7 @@ function main {
 
   # we declare this var after random delay to reduce the possibility of duplicates
   # for example: if time changes due to DST.
-  archive_name="$(date +%s)"
+  [[ -z "$archive_name" ]] && archive_name="$(date +%s)"
   logit "Starting backup to ${attic_repo}::${archive_name}"
   attic create \
     "${attic_repo}::${archive_name}"    \
