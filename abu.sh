@@ -70,8 +70,8 @@ function main {
   # we declare all our configuration variable from the config file to avoid
   # unbound variable errors (due to set -u) if the config options are missing
   # from the config file.
-  declare attic_repo=
-  declare attic_key=
+  declare repo_uri=
+  declare repo_key=
   declare -a include_paths=()
   declare -a exclude_paths=()
   declare -i keep_within=
@@ -141,11 +141,11 @@ function main {
   fi
 
   # make all our config readonly
-  readonly attic_repo include_paths exclude_paths action
+  readonly repo_uri include_paths exclude_paths action
   readonly keep_within keep_hourly keep_daily keep_weekly keep_yearly
 
   # do we have all the config?
-  [[ -z "${attic_repo}" ]]  && { echo "Missing config: attic_repo"; exit 2; }
+  [[ -z "${repo_uri}" ]]  && { echo "Missing config: repo_uri"; exit 2; }
   [[ -z "${keep_hourly}" ]] && { echo "Missing config: keep_hourly"; exit 2; }
   [[ -z "${keep_daily}" ]]  && { echo "Missing config: keep_daily"; exit 2; }
   [[ -z "${keep_weekly}" ]] && { echo "Missing config: keep_weekly"; exit 2; }
@@ -158,28 +158,31 @@ function main {
   fi
 
   # has an encryption key been specified?
-  if [[ -n "$attic_key" ]] ; then
+  if [[ -n "$repo_key" ]] ; then
     logit "Encryption key configured"
-    if [[ ${#attic_key} -lt 8 ]] ; then
-      logit "WARNING: Passphrase is only ${#attic_key} characters long. Consider making it longer"
+    if [[ ${#repo_key} -lt 8 ]] ; then
+      logit "WARNING: Passphrase is only ${#repo_key} characters long. Consider making it longer"
     fi
-    export ATTIC_PASSPHRASE="$attic_key"
+    # this is a little lazy to just export both, but it's the
+    # simplest solution for the the time being
+    export ATTIC_PASSPHRASE="$repo_key"
+    export BORG_PASSPHRASE="$repo_key"
   fi
 
   case "$action" in
     'init')
-      logit "Initializing repository ${attic_repo}"
-      if [[ -n "$attic_key" ]] ; then
-        attic init -e passphrase "${attic_repo}"
+      logit "Initializing repository ${repo_uri}"
+      if [[ -n "$repo_key" ]] ; then
+        $backup_tool init -e passphrase "${repo_uri}"
       else
-        attic init "${attic_repo}"
+        $backup_tool init "${repo_uri}"
       fi
       exit 0
       ;;
     'list')
       # prepend '::' to the archive name if it's been set
       [[ -n "$archive_name" ]] && archive_name="::$archive_name"
-      attic list "$attic_repo""$archive_name"
+      $backup_tool list "$repo_uri""$archive_name"
       exit 0
       ;;
   esac
@@ -210,15 +213,15 @@ function main {
   # we declare this var after random delay to reduce the possibility of duplicates
   # for example: if time changes due to DST.
   [[ -z "$archive_name" ]] && archive_name="$(date +%s)"
-  logit "Starting backup to ${attic_repo}::${archive_name}"
-  attic create \
-    "${attic_repo}::${archive_name}"    \
+  logit "Starting backup to ${repo_uri}::${archive_name}"
+  $backup_tool create \
+    "${repo_uri}::${archive_name}"    \
     --exclude-from "${tfile_excludes}"  \
     --exclude-caches                    \
     ${include_paths[@]}
 
   logit "Cleaning up old archives"
-  attic prune "${attic_repo}"     \
+  $backup_tool prune "${repo_uri}"     \
     ${keep_within_arg}            \
     --keep-hourly=${keep_hourly}  \
     --keep-daily=${keep_daily}    \
@@ -228,7 +231,7 @@ function main {
   # perhaps do a test list? this is to help combat https://github.com/jborg/attic/issues/139
   if [[ -n "$do_test_list" ]] ; then
     logit "Performing a test listing of archive"
-    if ! attic list "${attic_repo}::${archive_name}" &> /dev/null ; then
+    if ! $backup_tool list "${repo_uri}::${archive_name}" &> /dev/null ; then
       # something failed
       logit "WARNING: listing the archive we just created failed. Something is likely wrong"
     fi
